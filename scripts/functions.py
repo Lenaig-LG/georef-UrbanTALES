@@ -354,7 +354,7 @@ def find_final_grid(filename: str, georef_output: str, res: int):
 import geopandas as gpd
 
 
-def open_final_gdf(filename):
+def open_final_gdf(filename: str, georef_output: str, res_cell: int = 50):
     """
     Open the final grid with associated filename.
 
@@ -362,12 +362,16 @@ def open_final_gdf(filename):
     ----------
     filename : str
         The name of the work zone (scenario) (exemple: "FR-Par-V2_d15").
+    georef_output : str
+        The path to georeference pipeline outputs.
+    res_cell : int
+        The grid cell resolution.
 
     Returns
     -------
     GeoDataFrame : the final grid.
     """
 
-    path_final = os.path.join(georef_output, filename, "final_gdf.geojson")
+    path_final = os.path.join(georef_output, filename, f"final_{res_cell}m.geojson")
     gdf = gpd.read_file(path_final)
     return gdf

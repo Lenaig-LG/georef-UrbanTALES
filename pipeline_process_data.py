@@ -1,117 +1,64 @@
 # Copyright (C) 2026 Lenaig Le Grognec
 # Licensed under the GNU Lesser General Public License v3.0 or later.
 # See COPYING.LESSER for details.
-
-#
-import sys
-import os
-
-project_path = "/home/llegrogn/Documents/These_Lenaig_perso/Lenaig_Le_Grognec/4.Coding/Projet_git/urban_wind_predict"
-sys.path.append(project_path)
-import pandas as pd
-from importlib import reload
-import os
-
-import scripts.grid as grid
-import scripts.wind_grid as wgrid
-import scripts.geo_grid as ggrid
-import scripts.final_grid as fg
-import scripts.metadata as mt
-import scripts.netcdf as nc
-import scripts.topo_raster as tr
-import scripts.topo_raster_georef as trg
-import scripts.raster as r
-
-# import grid as grid
-# import wind_grid as wgrid
-# import geo_grid as ggrid
-# import final_grid as fg
-# import metadata as mt
-# import netcdf as nc
-# import topo_raster as tr
-# import topo_raster_georef as trg
-# import raster as r
-
-reload(grid)
-reload(wgrid)
-reload(ggrid)
-reload(fg)
-reload(mt)
-reload(nc)
-reload(tr)
-reload(trg)
-reload(r)
-
-from scripts.metadata import Metadata
-from scripts.netcdf import NetCdf
-from scripts.topo_raster import TopoRaster
-from scripts.topo_raster_georef import TopoRasterGeoref
-from scripts.grid import Grid
-from scripts.wind_grid import WindGrid
-from scripts.geo_grid import GeoGrid
-from scripts.final_grid import FinalGrid
-import scripts.functions as fct
-
-# from metadata import Metadata
-# from netcdf import NetCdf
-# from topo_raster import TopoRaster
-# from topo_raster_georef import TopoRasterGeoref
-# from grid import Grid
-# from wind_grid import WindGrid
-# from geo_grid import GeoGrid
-# from final_grid import FinalGrid
-# import functions as fct
-
-reload(fct)
-
 # -----
 
+import pandas as pd
+from importlib import reload
 
-path_git = os.path.join(
-    "/home",
-    "llegrogn",
-    "Documents",
-    "These_Lenaig_perso",
-    "Lenaig_Le_Grognec",
-    "4.Coding",
-    "Projet_git",
+from scripts.config import *
+
+from scripts.config import (
+    PROJECT_ROOT,
+    DATA_DIR,
+    OUTPUT_DIR,
+    PATH_3D,
+    GEOREF_INPUT,
+    GEOREF_OUTPUT,
+    check_paths,
 )
 
-path_data = os.path.join(path_git, "Data")
-path_3D = os.path.join(path_data, "Copie_UrbanTALES", "3Dwind")
+check_paths()
 
-path_output = os.path.join(path_git, "Outputs")
-os.makedirs(path_output, exist_ok=True)
+import scripts.functions as fct
 
-path_work = os.path.join(path_git, "urban_wind_predict")
-
-georef_input = os.path.join(path_data, "GeoReference", "Georef_input")
-georef_output = os.path.join(path_data, "GeoReference", "Georef_output")
 # -----
 
 # Open metadata file
-m = Metadata(path_metadata=os.path.join(path_data, "Copie_UrbanTALES", "metadata.csv"))
-m.metadata_df
+m = Metadata(path_metadata=os.path.join(DATA_DIR, "UrbanTALES", "metadata.csv"))
+print(m.metadata_df)
 
 # -----
 
 # Which geo domain do we focus on?
-# from scripts.scenario import *
-
 import scripts.scenario as scenario
 
 reload(scenario)
 from scripts.scenario import *
 
-print(scenario_list)
+print("List of all scenarios : \n", scenario_list)
+print("Number of scenarios : ", len(scenario_list))
 
+
+# --- Process line ---
+
+print("Starting the processing chain : ")
 for filename in scenario_list:
+    print(
+        "-------------------------------------- \n",
+        filename,
+        "\n--------------------------------------",
+    )
+
+    print(
+        f"Metada of {filename} : \n", m.metadata_df[m.metadata_df["NameE"] == filename]
+    )
 
     # filename = filenames_list[0]
     # filename = "CN-Bei-V1_d15"
     print(filename)
     if (
-        fct.find_final_grid(filename=filename, georef_output=georef_output, res=50)
+        fct.find_final_grid(filename=filename, georef_output=GEOREF_OUTPUT, res=50)
         == True
     ):
         print("✅ Georef processing already done!")
@@ -121,7 +68,7 @@ for filename in scenario_list:
         # if pd.isna(nc_code) or not str(nc_code).strip():
         #     print(f"NameI (nc file code) is empty: {nc_code}.")
         # nc_file = f"{nc_code}_data.nc"
-        # nc_path = os.path.join(path_3D, nc_file)
+        # nc_path = os.path.join(PATH_3D, nc_file)
         # if os.path.exists(nc_path):
         #     print(f"{nc_file} found at: {nc_path}")
         # else:
@@ -134,8 +81,8 @@ for filename in scenario_list:
         nc = NetCdf(
             filename_e=filename,
             metadata=m,
-            path_3d_folder=path_3D,
-            georef_input=georef_input,
+            path_3d_folder=PATH_3D,
+            georef_input=GEOREF_INPUT,
         )
 
         nc.nc_xr
@@ -148,12 +95,12 @@ for filename in scenario_list:
         # # metadata = m.metadata_df
         # df = m.metadata_df
 
-        # # Trouver la ligne dont le NameE commence par filename
+        # # Finding line which NameE begins with filename
         # match_df = df[df["NameE"].astype(str) == str(filename)]
         # # match_df["angle_domain"] = pd.NA
 
         # if not match_df.empty:
-        #     # On récupère la première correspondance
+        #     # We retrieve first correspondence
         #     row = match_df.iloc[0]
         #     if pd.notna(row.get("name_topo")):
         #         name_topo = str(row["name_topo"])
@@ -170,9 +117,9 @@ for filename in scenario_list:
         # Open and process to raster the topo file used in UrbanTALES associated with the filename_e
         topo_test = TopoRaster(
             filename_e=filename,
-            georef_input=georef_input,
-            georef_output=georef_output,
-            path_data=path_data,
+            georef_input=GEOREF_INPUT,
+            georef_output=GEOREF_OUTPUT,
+            path_data=PATH_3D,
             m=m,
         )
 
@@ -182,34 +129,36 @@ for filename in scenario_list:
         # ---
         # For georeference operations, we did not compute any classes and choose to use functions instead.
 
-        fct.find_gcp(filename=filename, georef_input=georef_input)
+        fct.find_gcp(filename=filename, georef_input=GEOREF_INPUT)
 
         groovy_georef_path = os.path.join(
-            path_git, "urban_wind_predict", "Groovy", "WindDataGDALCommands.groovy"
+            PROJECT_ROOT,
+            "groovy",
+            "WindDataGDALCommands.groovy",
         )
 
         fct.georeferencement(
             filename_e=filename,
             topo=topo_test,
-            georef_input=georef_input,
-            georef_output=georef_output,
-            path_data=path_data,
+            georef_input=GEOREF_INPUT,
+            georef_output=GEOREF_OUTPUT,
+            path_data=DATA_DIR,
             groovy_path=groovy_georef_path,
         )
         # The georeferenced topo file is loaded with another class
-        topo_georef = TopoRasterGeoref(filename_e=filename, georef_output=georef_output)
+        topo_georef = TopoRasterGeoref(filename_e=filename, georef_output=GEOREF_OUTPUT)
         topo_georef.to_geojson(viz=True)  # save into geojson
 
         # # Add angle value of the domain
         # # metadata = m.metadata_df
         # df = m.metadata_df
 
-        # # Trouver la ligne dont le NameE commence par filename
+        # # Finding line which NameE begins with filename
         # match_df = df[df["NameE"].astype(str) == str(filename)]
         # # match_df["angle_domain"] = pd.NA
 
         # if not match_df.empty:
-        #     # On récupère la première correspondance
+        #     # We retrieve first correspondence
         #     row = match_df.iloc[0]
         #     if pd.notna(row.get("angle_domain")):
         #         angle = float(row["angle_domain"])
@@ -222,13 +171,13 @@ for filename in scenario_list:
 
         # else:
         #     print(
-        #         "Renseigner à la main la valeur d'angle (aucune correspondance dans NameE)"
+        #         "Enter the angle value manually (no match in NameE)."
         #     )
 
         # Construction of the base grid
         base_grid = Grid(
-            georef_output=georef_output,
-            path_data=path_data,
+            georef_output=GEOREF_OUTPUT,
+            path_data=DATA_DIR,
             filename_e=filename,
             buffer=20,
             target_resolution=50,
@@ -244,11 +193,9 @@ for filename in scenario_list:
         # wind_grid_test.gdf_wind_grid.head()
 
         # Creation of the geo grid from base grid
-        groovy_path_eb = os.path.join(
-            path_git, "urban_wind_predict", "Groovy", "extractBuilding.groovy"
-        )
+        groovy_path_eb = os.path.join(PROJECT_ROOT, "Groovy", "extractBuilding.groovy")
         groovy_path_geo = os.path.join(
-            path_git, "urban_wind_predict", "Groovy", "geoClimateIndicators.groovy"
+            PROJECT_ROOT, "Groovy", "geoClimateIndicators.groovy"
         )
 
         geo_grid_test = GeoGrid(
@@ -269,33 +216,3 @@ for filename in scenario_list:
         # table = final_grid_test.final_grid
 
         print(f"End georef {filename}.")
-
-
-# # Creation of the geo grid from base grid
-# groovy_path_eb = os.path.join(
-#     path_git, "urban_wind_predict", "Groovy", "extractBuilding.groovy"
-# )
-# groovy_path_geo = os.path.join(
-#     path_git, "urban_wind_predict", "Groovy", "geoClimateIndicators.groovy"
-# )
-
-# geo_grid_test = GeoGrid(
-#     base_grid, groovy_path_eb=groovy_path_eb, groovy_path_geo=groovy_path_geo
-# )
-
-# # We check if epsg codes are equals
-# wind_grid_test.grid.epsg
-# geo_grid_test.grid.epsg
-
-# # Insight on grids:
-# wind_grid_test.gdf_wind_grid.columns
-# geo_grid_test.gdf_geo_grid.head()
-# geo_grid_test.gdf_geo_grid.columns
-
-# # The final grid is generated:
-
-# final_grid_test = FinalGrid(wind_grid=wind_grid_test, geo_grid=geo_grid_test)
-# # table = final_grid_test.final_grid
-
-
-m.metadata_df[m.metadata_df["NameE"] == filename]
