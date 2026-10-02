@@ -1,8 +1,14 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-###############################################################################
-# Paths setting
-###############################################################################
+#######################################################################
+
+### MODULE : SETTINGS
+
+#######################################################################
+
+
+# --- Paths setting ---------------------------------------------------
+
 
 import os
 from pathlib import Path
@@ -44,13 +50,11 @@ def check_paths():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
-###############################################################################
-# Modules and classes importations
-###############################################################################
+# --- Modules and classes importations -----------------------------------
+
 
 from importlib import reload
 import os
-
 import scripts.grid as grid
 import scripts.wind_grid as wgrid
 import scripts.geo_grid as ggrid
@@ -60,7 +64,6 @@ import scripts.netcdf as nc
 import scripts.topo_raster as tr
 import scripts.topo_raster_georef as trg
 import scripts.raster as r
-
 
 reload(grid)
 reload(wgrid)

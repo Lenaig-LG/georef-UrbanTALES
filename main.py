@@ -1,7 +1,16 @@
 # Copyright (C) 2026 Lenaig Le Grognec
 # Licensed under the GNU Lesser General Public License v3.0 or later.
 # See COPYING.LESSER for details.
-# -----
+
+#######################################################################
+
+### MODULE : PROCESSING OF ALL SCENARIOS
+
+# This module starts the processing pipeline for all scenarios
+# listed in scripts.scenario.py
+
+#######################################################################
+
 
 import pandas as pd
 from importlib import reload
