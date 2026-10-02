@@ -145,6 +145,8 @@ Copyright (C) 2026 Lenaig Le Grognec
 
 ## Author {#author}
 
-Lenaig Le Grognec ([\@Lenaig-LG](https://github.com/Lenaig-LG))
+Lenaig Le Grognec ([\@Lenaig-LG](https://github.com/Lenaig-LG)), Lab-STICC, Université de Bretagne Sud.
+Jérémy Bernard, EDYTEM, Université Savoie-Mont-Blanc
+Baptiste Alglave, Lab-STICC, Université de Bretagne Sud.
+Erwan Bocher, CNRS, Lab-STICC, Université de Bretagne Sud.
 
-Lab-STICC, Université de Bretagne Sud.
